@@ -3,7 +3,16 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="從量子位元到 Shor 演算法，深入解析 Google QuantumAI 2026 白皮書與 ArXiv 最新研究如何改變加密貨幣安全格局。" />
+  <meta name="theme-color" content="#0a0e1a" />
+  <!-- Open Graph -->
+  <meta property="og:title" content="量子威脅與加密貨幣安全 — Shor 演算法深度解析" />
+  <meta property="og:description" content="從量子位元到 Shor 演算法，深入解析 Google QuantumAI 2026 白皮書與 ArXiv 最新研究如何改變加密貨幣安全格局。" />
+  <meta property="og:type" content="article" />
+  <meta property="og:locale" content="zh_TW" />
   <title>量子威脅與加密貨幣安全 — Shor 演算法深度解析</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚛</text></svg>" />
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
   <link rel="stylesheet" href="style.css" />
   <!-- MathJax for mathematical notation -->
   <script>
@@ -20,7 +29,7 @@
 </head>
 <body>
 
-<button id="menu-toggle" aria-label="開啟導覽">☰</button>
+<button id="menu-toggle" aria-label="開啟導覽" title="開啟導覽">☰</button>
 
 <div class="page-wrapper">
 
@@ -141,7 +150,7 @@
             <div class="tw-name">Justin Drake</div>
             <div class="tw-handle">@drakefjustin</div>
           </div>
-          <svg style="margin-left:auto;width:20px;fill:#1da1f2;" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.747l7.73-8.835L1.254 2.25H8.08l4.259 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+          <svg class="tw-x-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.747l7.73-8.835L1.254 2.25H8.08l4.259 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
         </div>
         <div class="tw-body">
           我對 2032 年前出現量子危機日（q-day）的信心<strong>大幅提升</strong>。
@@ -1178,16 +1187,16 @@
           與中央化的金融機構不同，Bitcoin 和 Ethereum 的協議升級需要全網路共識（硬分叉或軟分叉）。
           以下是主要挑戰：
         </p>
-        <ul style="margin-top:10px;padding-left:20px;color:var(--text-muted);">
-          <li style="margin-bottom:8px;">
+        <ul class="card-list">
+          <li>
             <strong>舊地址的「遺孤」問題：</strong>大量舊地址（包括 Satoshi 的比特幣）使用脆弱的公鑰格式，
             升級後如何處理？
           </li>
-          <li style="margin-bottom:8px;">
+          <li>
             <strong>後量子簽章體積大：</strong>CRYSTALS-Dilithium 簽章約 2,420 bytes，
             相比 ECDSA 的 72 bytes 大了 33 倍，會顯著增加區塊鏈的存儲和傳輸開銷。
           </li>
-          <li style="margin-bottom:8px;">
+          <li>
             <strong>治理時間壓力：</strong>即使技術方案已確定，在去中心化網路中推動升級仍需數年。
           </li>
           <li>
@@ -1262,14 +1271,14 @@
           Justin Drake 提出的 Lean Ethereum 是一個兼顧<strong>極致效能</strong>與<strong>後量子安全</strong>的
           以太坊十年路線圖，核心包括：
         </p>
-        <ul style="padding-left:20px;margin-top:10px;color:var(--text-muted);">
-          <li style="margin-bottom:8px;">
+        <ul class="card-list">
+          <li>
             <strong>共識層（Beacon Chain 2.0）：</strong>更快的最終性（finality），整合後量子簽章
           </li>
-          <li style="margin-bottom:8px;">
+          <li>
             <strong>資料層（Blobs 2.0）：</strong>後量子的資料可用性保證（取代 KZG 承諾）
           </li>
-          <li style="margin-bottom:8px;">
+          <li>
             <strong>執行層（RISC-V）：</strong>SNARK 友好的最小指令集，便於零知識證明整合
           </li>
           <li>
@@ -1441,14 +1450,18 @@
       </ul>
 
       <hr/>
-      <p style="font-size:0.82rem;color:var(--text-dim);text-align:center;">
-        本頁面用於教育目的，涵蓋量子計算、密碼學與區塊鏈安全的跨領域知識。<br/>
-        內容基於截至 2026 年 3 月的最新研究資料。
-      </p>
+      <footer class="site-footer">
+        <p>
+          本頁面用於教育目的，涵蓋量子計算、密碼學與區塊鏈安全的跨領域知識。<br/>
+          內容基於截至 2026 年 3 月的最新研究資料。
+        </p>
+      </footer>
     </section>
 
   </main>
 </div>
+
+<a href="#" id="back-to-top" aria-label="回到頂部" title="回到頂部">↑</a>
 
 <script>
   // Sidebar toggle for mobile
@@ -1474,6 +1487,12 @@
   }, { rootMargin: '-20% 0% -60% 0%' });
 
   sections.forEach(s => observer.observe(s));
+
+  // Back to top button
+  const backToTop = document.getElementById('back-to-top');
+  window.addEventListener('scroll', () => {
+    backToTop.classList.toggle('visible', window.scrollY > 400);
+  });
 </script>
 
 </body>
