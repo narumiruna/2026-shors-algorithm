@@ -59,6 +59,7 @@
         <li><a href="#timeline">威脅時間軸</a></li>
         <li><a href="#pqc">後量子密碼學</a></li>
         <li><a href="#ethereum">以太坊的因應策略</a></li>
+        <li><a href="#dormant-assets">休眠數位資產</a></li>
         <li><a href="#references">參考資料</a></li>
       </ul>
     </nav>
@@ -718,6 +719,13 @@
         永遠不要重複使用 Bitcoin 地址！每次交易後使用新地址可以大幅降低量子威脅。
         但即便如此，on-spend 攻擊的風險在量子電腦出現後仍然存在。
       </div>
+
+      <div class="info-box green">
+        <strong>✅ 比特幣工作量證明（PoW）對量子攻擊免疫</strong>
+        Google 白皮書明確指出：比特幣的<strong>工作量證明挖礦機制</strong>對量子電腦攻擊具有免疫性。
+        挖礦基於 SHA-256 雜湊函數的搜索，量子電腦使用 Grover 演算法最多僅能提供平方根加速（2× 效益），
+        遠不足以顛覆挖礦競爭格局。量子電腦的威脅聚焦於數位簽章（ECDSA），而非共識機制本身。
+      </div>
     </section>
 
     <hr/>
@@ -731,7 +739,10 @@
       <div class="info-box blue">
         <strong>📄 論文標題</strong>
         "Securing Elliptic Curve Cryptocurrencies against Quantum Vulnerabilities:
-        Resource Estimates and Mitigations" — Google QuantumAI（2026 年 3 月）<br/>
+        Resource Estimates and Mitigations" — Google QuantumAI（2026 年 3 月 30 日）<br/>
+        作者：Ryan Babbush、Adam Zalcman、Craig Gidney、Michael Broughton、Tanuj Khattar、
+        Hartmut Neven、Thiago Bergamaschi（Google Quantum AI）、
+        <strong>Justin Drake</strong>（Ethereum Foundation）、Dan Boneh（Stanford）<br/>
         <a href="https://quantumai.google/static/site-assets/downloads/cryptocurrency-whitepaper.pdf" target="_blank" rel="noopener">
           https://quantumai.google/static/site-assets/downloads/cryptocurrency-whitepaper.pdf ↗
         </a>
@@ -740,7 +751,8 @@
       <h3>核心發現</h3>
       <p>
         這份白皮書是迄今為止最具權威性的量子電腦對加密貨幣威脅的技術研究，
-        由 Google 量子 AI 團隊與頂尖密碼學家（包括史丹福大學 Dan Boneh）共同撰寫。
+        由 Google 量子 AI 團隊與頂尖密碼學家共同撰寫。值得注意的是，
+        以太坊基金會研究員 Justin Drake 是本論文的共同作者之一。
       </p>
 
       <div class="stat-grid">
@@ -760,6 +772,23 @@
           <div class="val">41%</div>
           <div class="label">On-spend 攻擊成功率估算</div>
         </div>
+        <div class="stat-card">
+          <div class="val">≤1,200</div>
+          <div class="label">最低邏輯量子位元數（90M Toffoli 閘方案）</div>
+        </div>
+        <div class="stat-card">
+          <div class="val">≤1,450</div>
+          <div class="label">替代邏輯量子位元數（70M Toffoli 閘方案）</div>
+        </div>
+      </div>
+
+      <div class="info-box orange">
+        <strong>⚡ 快時鐘 vs. 慢時鐘架構：關鍵區別</strong><br/>
+        白皮書提出了一個重要區分：「<strong>快時鐘</strong>」架構（如超導量子位元、光量子）閘操作速度快，
+        足以在比特幣出塊時間（~10 分鐘）內完成攻擊，因此可能實施 <strong>on-spend 攻擊</strong>；
+        而「<strong>慢時鐘</strong>」架構（如中性原子、離子阱）速度較慢，
+        只能對長期暴露的公鑰執行<strong>靜止攻擊（at-rest attack）</strong>，
+        無法在交易確認視窗內完成破解。這一區別對評估緊急程度至關重要。
       </div>
 
       <h3>技術突破點</h3>
@@ -767,8 +796,8 @@
         <h4>✅ 1. 更高效的量子電路設計</h4>
         <p>
           研究者設計了針對 secp256k1 橢圓曲線的專用量子電路，大幅減少了所需的邏輯量子位元數。
-          透過對模式算術（modular arithmetic）的量子電路優化，
-          執行一次 ECDLP 攻擊所需的 T-gate 數量顯著降低。
+          提供兩種方案：方案一使用 ≤1,200 個邏輯量子位元搭配 ≤9,000 萬個 Toffoli 閘；
+          方案二使用 ≤1,450 個邏輯量子位元搭配 ≤7,000 萬個 Toffoli 閘。
         </p>
       </div>
       <div class="card accent3-l">
@@ -776,13 +805,15 @@
         <p>
           利用最新的表面碼（Surface Code）進展，每個邏輯量子位元所需的物理量子位元數
           從原先的數千個降低到數百個，從而壓低了總體物理量子位元需求。
+          在錯誤率 10<sup>-3</sup>、平面連通性的超導架構上，計算可在數分鐘內完成。
         </p>
       </div>
       <div class="card accent3-l">
         <h4>✅ 3. 零知識證明驗證</h4>
         <p>
           Google 採用<strong>負責任揭露</strong>的原則：未公開實際攻擊電路，
-          而是提供零知識證明（zero-knowledge proof）來驗證其技術聲明。
+          而是提供零知識證明（ZK proof，通過 SP1 與 Groth16 SNARK 實作），
+          讓第三方可以密碼學方式驗證電路存在而不洩漏攻擊細節。
           此舉已與美國政府和相關利益方協調。
         </p>
       </div>
@@ -833,7 +864,9 @@
       <div class="info-box purple">
         <strong>📄 論文標題</strong>
         "Shor's algorithm is possible with as few as 10,000 reconfigurable atomic qubits"
-        — arXiv:2603.28627（2026 年 3 月）<br/>
+        — arXiv:2603.28627（2026 年 3 月 31 日）<br/>
+        作者：Madelyn Cain、Qian Xu、Robbie King、Lewis R. B. Picard、Harry Levine、
+        Manuel Endres、John Preskill、Hsin-Yuan Huang、Dolev Bluvstein（Oratomic / Caltech）<br/>
         <a href="https://arxiv.org/abs/2603.28627" target="_blank" rel="noopener">
           https://arxiv.org/abs/2603.28627 ↗
         </a>
@@ -843,6 +876,7 @@
       <p>
         這篇論文利用<strong>中性原子量子電腦（Neutral Atom Quantum Computers）</strong>的最新進展，
         將執行 Shor 演算法所需的量子位元數大幅壓縮至前所未有的低點。
+        論文提出了一個包含四個功能區的量子電腦架構：記憶區、處理器區、操作區和資源區。
       </p>
 
       <div class="stat-grid">
@@ -851,16 +885,16 @@
           <div class="label">最少所需原子量子位元（理論最低）</div>
         </div>
         <div class="stat-card">
+          <div class="val">11,961</div>
+          <div class="label">ECC-256 最小可行架構量子位元數</div>
+        </div>
+        <div class="stat-card">
           <div class="val">26,000</div>
-          <div class="label">破解 ECC-256 的實用量子位元數</div>
+          <div class="label">ECC-256 實用架構量子位元數（~10 天）</div>
         </div>
         <div class="stat-card">
-          <div class="val">~10 天</div>
-          <div class="label">以 26,000 量子位元破解 ECC-256</div>
-        </div>
-        <div class="stat-card">
-          <div class="val">102,000</div>
-          <div class="label">破解 RSA-2048 所需量子位元</div>
+          <div class="val">13,255</div>
+          <div class="label">RSA-2048 最小架構量子位元數（但需更長時間）</div>
         </div>
       </div>
 
@@ -941,8 +975,8 @@
             <tr>
               <td>ECC-256（secp256k1）</td>
               <td>Bitcoin、Ethereum 錢包</td>
-              <td>26,000</td>
-              <td>~10 天</td>
+              <td>11,961（最小）/ 26,000（實用）</td>
+              <td>~10 天（26K 量子位元）</td>
             </tr>
             <tr>
               <td>P-256（NIST 標準）</td>
@@ -953,14 +987,8 @@
             <tr>
               <td>RSA-2048</td>
               <td>電子郵件、金融系統</td>
-              <td>~102,000</td>
-              <td>~3 個月</td>
-            </tr>
-            <tr>
-              <td>RSA-4096</td>
-              <td>高安全性場景</td>
-              <td>~400,000</td>
-              <td>估算中</td>
+              <td>13,255（最小）/ ~102,000（並行化）</td>
+              <td>~97 天（102K 並行架構）</td>
             </tr>
           </tbody>
         </table>
@@ -968,8 +996,9 @@
 
       <div class="info-box orange">
         <strong>🔍 現況</strong>
-        目前中性原子量子電腦的記錄是超過 6,000 個高相干性量子位元（實驗室演示），
-        距離 26,000 仍有差距，但技術發展速度令人矚目。
+        目前中性原子量子電腦的記錄是超過 6,000 個高相干性量子位元（實驗室演示，尚未執行量子計算），
+        距離 26,000 仍有差距。論文假設穩定器測量週期為 1 毫秒（1 ms），
+        若技術進一步發展達到 1 微秒（1 μs），運行時間可再縮短約 1,000 倍。
       </div>
     </section>
 
@@ -1171,6 +1200,55 @@
     <section id="ethereum">
       <h2><span class="section-num">18.</span> 以太坊的後量子安全策略</h2>
 
+      <h3>Ethereum 面臨的多層量子威脅</h3>
+      <p>
+        Google 白皮書對以太坊的量子脆弱性進行了分層分析，識別出五大類風險：
+      </p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>脆弱性類別</th><th>密碼根源</th><th>潛在風險</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>帳戶脆弱性</strong></td>
+              <td>ECDSA 外部帳戶（EOA）</td>
+              <td>公鑰暴露的帳戶（地址重用者）可被靜止攻擊竊取資產</td>
+            </tr>
+            <tr>
+              <td><strong>管理員脆弱性</strong></td>
+              <td>智能合約管理員私鑰</td>
+              <td>攻擊者可偽造管理員簽名，控制智能合約邏輯或提取資金</td>
+            </tr>
+            <tr>
+              <td><strong>代碼脆弱性</strong></td>
+              <td>智能合約中的 ECDSA 驗證</td>
+              <td>合約代碼中硬編碼公鑰的驗證邏輯可被繞過</td>
+            </tr>
+            <tr>
+              <td><strong>共識脆弱性</strong></td>
+              <td>BLS 簽章（驗證者簽名）</td>
+              <td>攻擊者可偽造驗證者簽名，危及 PoS 共識安全性</td>
+            </tr>
+            <tr>
+              <td><strong>資料可用性脆弱性</strong></td>
+              <td>KZG 承諾（EIP-4844）</td>
+              <td>KZG 多項式承諾依賴橢圓曲線，量子攻擊可偽造承諾</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box red">
+        <strong>⚠️ Ethereum 特有風險：智能合約可製造可重用漏洞</strong>
+        白皮書指出，量子電腦對以太坊的威脅比比特幣更為複雜。
+        在比特幣中，攻擊者需針對每個目標個別破解；而以太坊的智能合約中，
+        攻擊者可能<strong>偽造管理員簽名</strong>來製造可重用的古典漏洞，
+        進一步橫向入侵依賴同一管理員的多個協議。
+        此外，以太坊 Layer 2 協議（總鎖定價值約 150 億美元）有很大比例依賴
+        ECDSA 或橢圓曲線密碼學保障安全。
+      </div>
+
       <h3>Ethereum 基金會的行動</h3>
       <p>
         以太坊基金會在 2026 年初正式將後量子安全列為最高優先戰略，
@@ -1189,7 +1267,7 @@
             <strong>共識層（Beacon Chain 2.0）：</strong>更快的最終性（finality），整合後量子簽章
           </li>
           <li style="margin-bottom:8px;">
-            <strong>資料層（Blobs 2.0）：</strong>後量子的資料可用性保證
+            <strong>資料層（Blobs 2.0）：</strong>後量子的資料可用性保證（取代 KZG 承諾）
           </li>
           <li style="margin-bottom:8px;">
             <strong>執行層（RISC-V）：</strong>SNARK 友好的最小指令集，便於零知識證明整合
@@ -1228,13 +1306,70 @@
       </blockquote>
     </section>
 
+    <section id="dormant-assets">
+      <h2><span class="section-num">19.</span> 休眠數位資產：政策挑戰</h2>
+
+      <p>
+        Google 白皮書深入探討了量子時代「休眠資產」（dormant assets）的政策難題。
+        這些資產包括長期未動用的加密貨幣地址，其公鑰長期暴露，
+        極易成為量子攻擊的首要目標。
+      </p>
+
+      <div class="info-box orange">
+        <strong>⚠️ Satoshi 的比特幣</strong>
+        比特幣創始人 Satoshi Nakamoto 持有的約 100 萬枚比特幣，
+        其地址使用早期的 P2PK（Pay-to-Public-Key）格式，公鑰直接暴露在鏈上。
+        這些資產在量子電腦出現後將面臨立即威脅，
+        也引發了關於「誰有權決定這些資產命運」的治理爭論。
+      </div>
+
+      <h3>比特幣社區的選項</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>方案</th><th>描述</th><th>爭議性</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>無為而治</strong></td>
+              <td>不主動干預，讓休眠資產存在量子風險</td>
+              <td><span class="tag green">低</span></td>
+            </tr>
+            <tr>
+              <td><strong>銷毀（Burn）</strong></td>
+              <td>透過協議升級宣布休眠地址資產失效</td>
+              <td><span class="tag red">極高</span></td>
+            </tr>
+            <tr>
+              <td><strong>沙漏機制（Hourglass）</strong></td>
+              <td>設置截止日期，逾期未遷移的資產被凍結或銷毀</td>
+              <td><span class="tag orange">高</span></td>
+            </tr>
+            <tr>
+              <td><strong>數位遺產（Digital Salvage）</strong></td>
+              <td>制定監管框架，允許政府或受信任機構管理無主休眠資產</td>
+              <td><span class="tag orange">高</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box blue">
+        <strong>💡 白皮書立場</strong>
+        白皮書建議，技術解決方案應輔以配套的公共政策討論。
+        各種「數位遺產」框架旨在在防止敵意奪取的同時，
+        合理處置休眠資產，但不存在完美方案——
+        每個選項都涉及不同的去中心化、財產權和國家主權的權衡。
+      </div>
+    </section>
+
     <hr/>
 
     <!-- ══════════════════════════════════════════════════════════
          SECTION 7: REFERENCES
     ═══════════════════════════════════════════════════════════ -->
     <section id="references">
-      <h2><span class="section-num">19.</span> 參考資料</h2>
+      <h2><span class="section-num">20.</span> 參考資料</h2>
 
       <ul class="ref-list">
         <li>
@@ -1247,19 +1382,25 @@
         </li>
         <li>
           <span class="ref-num">[2]</span>
-          <strong>Google QuantumAI — "Securing Elliptic Curve Cryptocurrencies against Quantum Vulnerabilities: Resource Estimates and Mitigations"</strong><br/>
-          Google QuantumAI 白皮書（2026 年 3 月）<br/>
+          <strong>Babbush et al. — "Securing Elliptic Curve Cryptocurrencies against Quantum Vulnerabilities: Resource Estimates and Mitigations"</strong><br/>
+          Google QuantumAI 白皮書（2026 年 3 月 30 日）<br/>
+          作者：Ryan Babbush、Adam Zalcman、Craig Gidney、Michael Broughton、Tanuj Khattar、
+          Hartmut Neven、Thiago Bergamaschi、Justin Drake、Dan Boneh<br/>
           <a href="https://quantumai.google/static/site-assets/downloads/cryptocurrency-whitepaper.pdf" target="_blank" rel="noopener">
             https://quantumai.google/static/site-assets/downloads/cryptocurrency-whitepaper.pdf
           </a>
+          · <a href="data/cryptocurrency-whitepaper.pdf" target="_blank">本機 PDF</a>
         </li>
         <li>
           <span class="ref-num">[3]</span>
-          <strong>"Shor's algorithm is possible with as few as 10,000 reconfigurable atomic qubits"</strong><br/>
-          arXiv:2603.28627（2026 年 3 月）<br/>
+          <strong>Cain et al. — "Shor's algorithm is possible with as few as 10,000 reconfigurable atomic qubits"</strong><br/>
+          arXiv:2603.28627（2026 年 3 月 31 日）<br/>
+          作者：Madelyn Cain、Qian Xu、Robbie King、Lewis R. B. Picard、Harry Levine、
+          Manuel Endres、John Preskill、Hsin-Yuan Huang、Dolev Bluvstein（Oratomic / Caltech）<br/>
           <a href="https://arxiv.org/abs/2603.28627" target="_blank" rel="noopener">
             https://arxiv.org/abs/2603.28627
           </a>
+          · <a href="data/2603.28627v1.pdf" target="_blank">本機 PDF</a>
         </li>
         <li>
           <span class="ref-num">[4]</span>
