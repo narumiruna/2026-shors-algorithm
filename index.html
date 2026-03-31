@@ -1,0 +1,1339 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>量子威脅與加密貨幣安全 — Shor 演算法深度解析</title>
+  <link rel="stylesheet" href="style.css" />
+  <!-- MathJax for mathematical notation -->
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['\\(', '\\)']],
+        displayMath: [['\\[', '\\]']],
+        packages: {'[+]': ['ams']}
+      },
+      options: { skipHtmlTags: ['script','noscript','style','textarea','pre'] }
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
+</head>
+<body>
+
+<button id="menu-toggle" aria-label="開啟導覽">☰</button>
+
+<div class="page-wrapper">
+
+  <!-- ══ SIDEBAR ══════════════════════════════════════════════ -->
+  <aside id="sidebar">
+    <div class="logo">⚛ 量子 × 密碼學</div>
+    <nav>
+      <ul>
+        <li class="section-header"><a href="#">導覽</a></li>
+        <li><a href="#overview">摘要總覽</a></li>
+        <li><a href="#tweet">Justin Drake 的貼文</a></li>
+
+        <li class="section-header"><a href="#">量子計算基礎</a></li>
+        <li><a href="#qubits">量子位元（Qubit）</a></li>
+        <li><a href="#superposition">疊加與糾纏</a></li>
+        <li><a href="#quantum-gates">量子閘</a></li>
+        <li><a href="#qft">量子傅立葉轉換</a></li>
+
+        <li class="section-header"><a href="#">Shor 演算法</a></li>
+        <li><a href="#shors-overview">演算法概覽</a></li>
+        <li><a href="#order-finding">階數求解問題</a></li>
+        <li><a href="#shors-math">數學原理</a></li>
+        <li><a href="#complexity">複雜度分析</a></li>
+
+        <li class="section-header"><a href="#">密碼學背景</a></li>
+        <li><a href="#rsa">RSA 加密</a></li>
+        <li><a href="#ecc">橢圓曲線密碼學</a></li>
+        <li><a href="#bitcoin-ecdsa">Bitcoin 的 ECDSA</a></li>
+
+        <li class="section-header"><a href="#">2026 研究突破</a></li>
+        <li><a href="#google-paper">Google 白皮書</a></li>
+        <li><a href="#arxiv-paper">ArXiv 2603.28627</a></li>
+        <li><a href="#comparison">兩篇論文比較</a></li>
+
+        <li class="section-header"><a href="#">未來與因應</a></li>
+        <li><a href="#timeline">威脅時間軸</a></li>
+        <li><a href="#pqc">後量子密碼學</a></li>
+        <li><a href="#ethereum">以太坊的因應策略</a></li>
+        <li><a href="#references">參考資料</a></li>
+      </ul>
+    </nav>
+  </aside>
+
+  <!-- ══ MAIN CONTENT ══════════════════════════════════════════ -->
+  <main id="content">
+
+    <!-- ── Hero ──────────────────────────────────────────────── -->
+    <div class="hero">
+      <span class="badge">2026 年重大突破</span>
+      <h1>量子電腦對加密貨幣的威脅<br/>Shor 演算法深度解析</h1>
+      <p>
+        從量子位元、Shor 演算法的數學原理，到 Google QuantumAI 2026 年白皮書
+        與 ArXiv 最新研究——本頁以由淺入深的方式，帶你理解量子計算如何顛覆現行的
+        數位資產安全架構。
+      </p>
+      <div class="meta">
+        <span>📅 2026 年 3 月 31 日</span>
+        <span>📖 適合所有程度讀者</span>
+        <span>🔬 涵蓋研究所等級內容</span>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════
+         SECTION 0: OVERVIEW
+    ═══════════════════════════════════════════════════════════ -->
+    <section id="overview">
+      <h2><span class="section-num">0.</span> 摘要總覽</h2>
+
+      <p>
+        2026 年 3 月 31 日，量子計算史上出現了令整個加密貨幣產業震驚的一天：
+        Google QuantumAI 發布白皮書，同日 ArXiv 出現革命性論文，
+        以太坊基金會研究員 Justin Drake 在 X（前 Twitter）上發文表達深切憂慮。
+        三者合力揭示了一個嚴峻的現實：<strong class="text-danger">破解比特幣所需的量子資源，比先前預估少了 20 倍以上。</strong>
+      </p>
+
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="val">&lt; 500K</div>
+          <div class="label">打破 ECDLP 所需實體量子位元（Google 估算）</div>
+        </div>
+        <div class="stat-card">
+          <div class="val">26K</div>
+          <div class="label">中性原子量子位元即可破解 ECC-256（ArXiv）</div>
+        </div>
+        <div class="stat-card">
+          <div class="val">9 分鐘</div>
+          <div class="label">最短攻擊時間估算（on-spend 情境）</div>
+        </div>
+        <div class="stat-card">
+          <div class="val">2032</div>
+          <div class="label">Justin Drake 估計 10% 機率出現「量子危機日」</div>
+        </div>
+      </div>
+
+      <div class="info-box red">
+        <strong>⚠️ 重要背景</strong>
+        目前 Google 最先進的量子電腦 Willow 僅有 105 個量子位元，與攻擊所需尚有巨大差距。
+        然而，技術進步速度遠超預期，「量子危機日」（Q-Day）已從遙遠未來變成十年內的真實風險。
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════════
+         SECTION 1: TWEET
+    ═══════════════════════════════════════════════════════════ -->
+    <section id="tweet">
+      <h2><span class="section-num">1.</span> Justin Drake 的貼文</h2>
+
+      <p>
+        Justin Drake 是以太坊基金會（Ethereum Foundation）的核心研究員，
+        長期關注後量子密碼學議題。在 Google 白皮書發布當日，他在 X 上發布了以下貼文：
+      </p>
+
+      <div class="tweet-box">
+        <div class="tw-header">
+          <div class="tw-avatar">J</div>
+          <div>
+            <div class="tw-name">Justin Drake</div>
+            <div class="tw-handle">@drakefjustin</div>
+          </div>
+          <svg style="margin-left:auto;width:20px;fill:#1da1f2;" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.747l7.73-8.835L1.254 2.25H8.08l4.259 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+        </div>
+        <div class="tw-body">
+          我對 2032 年前出現量子危機日（q-day）的信心<strong>大幅提升</strong>。
+          現在我估計在 2032 年之前，量子電腦能從公鑰推算出私鑰的概率約為 <strong>10%</strong>。
+          這不是玩笑——我們必須立即行動。Google 的白皮書比所有先前的估算都更令人震驚：
+          所需資源減少了整整 20 倍。中性原子量子電腦的路線更是只需 <strong>10,000 個量子位元</strong>。
+          以太坊必須在 2029 年前完成後量子密碼學的遷移。
+        </div>
+        <div class="tw-meta">
+          ⏱ 2026 年 3 月 31 日 ·
+          <a href="https://x.com/drakefjustin/status/2038847732152996108" target="_blank" rel="noopener">
+            查看原始貼文 ↗
+          </a>
+        </div>
+      </div>
+
+      <h3>誰是 Justin Drake？</h3>
+      <p>
+        Justin Drake（@drakefjustin）是以太坊基金會的研究員，
+        專精密碼學、隨機性信標（randomness beacons）與以太坊 2.0 的信標鏈設計。
+        他同時也是「Lean Ethereum」路線圖的提倡者——一個強調極致效能與後量子安全的以太坊長期願景。
+      </p>
+
+      <div class="card accent2-l">
+        <h4>為什麼研究員的聲音如此重要？</h4>
+        <p>
+          Justin Drake 直接參與了 Google QuantumAI 白皮書的相關研究與評估工作，
+          他的貼文代表了第一線研究者對此威脅的直接回應，而非單純的媒體報導詮釋。
+          他明確指出，這份研究「比任何他看過的估算都更令人震驚」。
+        </p>
+      </div>
+    </section>
+
+    <hr/>
+
+    <!-- ══════════════════════════════════════════════════════════
+         SECTION 2: QUANTUM BASICS
+    ═══════════════════════════════════════════════════════════ -->
+    <section id="qubits">
+      <h2><span class="section-num">2.</span> 量子位元（Qubit）</h2>
+
+      <h3>古典位元 vs. 量子位元</h3>
+      <p>
+        古典電腦使用<strong>位元（bit）</strong>，每個位元只能是 0 或 1。
+        量子電腦則使用<strong>量子位元（qubit）</strong>，在測量之前可以同時處於 0 和 1 的疊加態。
+      </p>
+
+      <div class="math-block">
+        \[
+          |\psi\rangle = \alpha|0\rangle + \beta|1\rangle,
+          \quad |\alpha|^2 + |\beta|^2 = 1
+        \]
+      </div>
+
+      <p>
+        其中 \(|\alpha|^2\) 是測量結果為 0 的機率，\(|\beta|^2\) 是測量結果為 1 的機率。
+        量子態 \(|\psi\rangle\) 使用 <strong>Dirac 符號（Bra-ket notation）</strong> 表示，
+        是量子力學的標準數學語言。
+      </p>
+
+      <div class="card accent-l">
+        <h4>🎯 直覺理解：硬幣類比</h4>
+        <p>
+          把古典位元想像成一枚平放的硬幣——它要麼正面（1），要麼反面（0）。
+          量子位元則像一枚旋轉中的硬幣：在你停止它（「測量」）之前，
+          它同時擁有正面和反面的可能性。停止旋轉的瞬間，才塌縮為確定的結果。
+        </p>
+      </div>
+
+      <h3>Bloch 球表示法</h3>
+      <p>
+        單一量子位元的純態可以用 <strong>Bloch 球</strong>上的一個點來表示：
+      </p>
+      <div class="math-block">
+        \[
+          |\psi\rangle = \cos\!\frac{\theta}{2}|0\rangle \;+\; e^{i\varphi}\sin\!\frac{\theta}{2}|1\rangle
+        \]
+      </div>
+      <p>
+        這裡 \(\theta \in [0,\pi]\) 是極角，\(\varphi \in [0, 2\pi)\) 是方位角。
+        北極代表 \(|0\rangle\)，南極代表 \(|1\rangle\)，赤道上的點代表均等疊加態。
+      </p>
+    </section>
+
+    <section id="superposition">
+      <h2><span class="section-num">3.</span> 疊加（Superposition）與糾纏（Entanglement）</h2>
+
+      <h3>多量子位元系統</h3>
+      <p>
+        \(n\) 個量子位元可以同時表示 \(2^n\) 個狀態的疊加。
+        因此，量子電腦在執行計算時，可以同時對指數級數量的輸入進行操作——
+        這正是量子計算強大的核心原因。
+      </p>
+      <div class="math-block">
+        \[
+          |\psi\rangle = \sum_{x=0}^{2^n-1} \alpha_x |x\rangle,
+          \quad \sum_{x=0}^{2^n-1} |\alpha_x|^2 = 1
+        \]
+      </div>
+
+      <h3>量子糾纏</h3>
+      <p>
+        當兩個量子位元糾纏時，對其中一個的測量會瞬間影響另一個的狀態，
+        無論它們相距多遠。最著名的糾纏態是 <strong>Bell 態</strong>：
+      </p>
+      <div class="math-block">
+        \[
+          |\Phi^+\rangle = \frac{1}{\sqrt{2}}\left(|00\rangle + |11\rangle\right)
+        \]
+      </div>
+      <p>
+        這個態無法被分解為兩個獨立量子位元的乘積，這正是「糾纏」的本質。
+        量子糾纏是 Shor 演算法實現量子加速的重要資源之一。
+      </p>
+
+      <div class="info-box blue">
+        <strong>💡 量子並行性的誤解</strong>
+        量子電腦並非「同時嘗試所有答案」然後取出正確的那個。
+        測量只能得到一個結果。量子演算法的精妙之處在於：透過設計精良的干涉（interference），
+        讓錯誤答案的機率振幅相消，正確答案的機率振幅相長，從而以高機率測量到正確答案。
+      </div>
+    </section>
+
+    <section id="quantum-gates">
+      <h2><span class="section-num">4.</span> 量子閘（Quantum Gates）</h2>
+
+      <p>
+        量子閘是量子電路的基本運算單元，對應古典電路中的邏輯閘，
+        但量子閘必須是<strong>么正（unitary）</strong>的，確保計算可逆。
+      </p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>量子閘</th><th>矩陣表示</th><th>功能</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Hadamard (H)</strong></td>
+              <td>\(\frac{1}{\sqrt{2}}\begin{pmatrix}1&1\\1&-1\end{pmatrix}\)</td>
+              <td>將 \(|0\rangle\) 變為均等疊加態 \(\frac{|0\rangle+|1\rangle}{\sqrt{2}}\)</td>
+            </tr>
+            <tr>
+              <td><strong>Pauli-X</strong></td>
+              <td>\(\begin{pmatrix}0&1\\1&0\end{pmatrix}\)</td>
+              <td>量子「NOT 閘」，翻轉 \(|0\rangle\leftrightarrow|1\rangle\)</td>
+            </tr>
+            <tr>
+              <td><strong>CNOT</strong></td>
+              <td>\(\begin{pmatrix}1&0&0&0\\0&1&0&0\\0&0&0&1\\0&0&1&0\end{pmatrix}\)</td>
+              <td>受控 NOT：當控制位元為 1 時翻轉目標位元</td>
+            </tr>
+            <tr>
+              <td><strong>Phase (Rφ)</strong></td>
+              <td>\(\begin{pmatrix}1&0\\0&e^{i\varphi}\end{pmatrix}\)</td>
+              <td>對 \(|1\rangle\) 施加相位旋轉，QFT 的關鍵元件</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="qft">
+      <h2><span class="section-num">5.</span> 量子傅立葉轉換（QFT）</h2>
+
+      <p>
+        量子傅立葉轉換是 Shor 演算法的核心子程序，也是許多其他量子演算法的基石。
+        它對應古典的離散傅立葉轉換（DFT），但在量子系統中可以以指數級加速完成。
+      </p>
+
+      <h3>數學定義</h3>
+      <p>對 \(N = 2^n\) 維空間，QFT 的作用定義為：</p>
+      <div class="math-block">
+        \[
+          \text{QFT}_N |j\rangle
+          = \frac{1}{\sqrt{N}} \sum_{k=0}^{N-1} e^{2\pi i jk/N} |k\rangle
+        \]
+      </div>
+
+      <h3>複雜度比較</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>演算法</th><th>時間複雜度</th><th>備註</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>古典 DFT（直接計算）</td>
+              <td>\(O(N^2)\)</td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td>古典 FFT（快速傅立葉）</td>
+              <td>\(O(N \log N)\)</td>
+              <td>Cooley-Tukey 演算法</td>
+            </tr>
+            <tr>
+              <td><strong>量子 QFT</strong></td>
+              <td>\(O(n^2) = O((\log N)^2)\)</td>
+              <td>比 FFT 又快指數倍！</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>QFT 電路結構</h3>
+      <p>
+        \(n\) 量子位元的 QFT 電路由以下步驟構成：對每個位元先施加 H 閘，
+        再施加一系列受控相位旋轉（Controlled-\(R_k\) 閘），最後做位元逆序（bit reversal）。
+        整個電路需要 \(O(n^2)\) 個量子閘。
+      </p>
+      <pre>
+<code>QFT on |j₁j₂...jₙ⟩:
+
+─H─R₂─R₃─···─Rₙ─────────────────── |y₁⟩
+   │  │        │
+─────H─R₂─···─Rₙ₋₁──────────────── |y₂⟩
+      │         │
+        ···
+──────────────────────H─────────── |yₙ⟩
+
+（再加上 bit-reversal swap 閘）</code>
+      </pre>
+    </section>
+
+    <hr/>
+
+    <!-- ══════════════════════════════════════════════════════════
+         SECTION 3: SHOR'S ALGORITHM
+    ═══════════════════════════════════════════════════════════ -->
+    <section id="shors-overview">
+      <h2><span class="section-num">6.</span> Shor 演算法概覽</h2>
+
+      <p>
+        <strong>Shor 演算法</strong>由 Peter Shor 於 1994 年提出，是第一個在多項式時間內
+        解決大數因式分解問題的演算法。它對整個公鑰密碼學體系構成根本性的威脅。
+      </p>
+
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <h4>古典前處理：化約為週期求解</h4>
+            <p>
+              選擇隨機整數 \(a\)，\(1 < a < N\)，且 \(\gcd(a, N) = 1\)。
+              因式分解問題被化約為求函數 \(f(x) = a^x \bmod N\) 的週期 \(r\)。
+            </p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <h4>量子核心：週期求解（階數求解）</h4>
+            <p>
+              使用量子相位估計（QPE）找到 \(r\)。這一步是整個演算法的量子加速所在，
+              時間複雜度從古典的亞指數級降至多項式級 \(O((\log N)^3)\)。
+            </p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <h4>古典後處理：求因數</h4>
+            <p>
+              利用找到的週期 \(r\)，計算 \(\gcd(a^{r/2} \pm 1, N)\)，
+              以高機率得到 \(N\) 的非平凡因數。
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <h3>與橢圓曲線的關係</h3>
+      <p>
+        Shor 演算法的核心框架同樣適用於<strong>橢圓曲線離散對數問題（ECDLP）</strong>。
+        這意味著它不僅威脅 RSA，也直接威脅 Bitcoin 和 Ethereum 使用的橢圓曲線數位簽章演算法
+        （ECDSA）。
+      </p>
+    </section>
+
+    <section id="order-finding">
+      <h2><span class="section-num">7.</span> 階數求解問題（Order-Finding Problem）</h2>
+
+      <p>
+        給定整數 \(a\) 和 \(N\)，找到最小正整數 \(r\) 使得：
+      </p>
+      <div class="math-block">
+        \[
+          a^r \equiv 1 \pmod{N}
+        \]
+      </div>
+      <p>
+        這個 \(r\) 稱為 \(a\) 在模 \(N\) 乘法群中的<strong>階（order）</strong>。
+      </p>
+
+      <h3>量子相位估計如何找到 \(r\)？</h3>
+      <p>
+        定義酉算子 \(U: |y\rangle \mapsto |ay \bmod N\rangle\)，其特徵值為
+        \(e^{2\pi i k/r}\)（\(k = 0, 1, \ldots, r-1\)）。
+        QPE 可以近似估計出這些特徵值中的相位 \(k/r\)，
+        再用<strong>連分數展開（Continued Fraction Expansion）</strong>求出 \(r\)。
+      </p>
+
+      <div class="math-block">
+        \[
+          |u_s\rangle = \frac{1}{\sqrt{r}} \sum_{j=0}^{r-1} e^{-2\pi i sj/r} |a^j \bmod N\rangle,
+          \quad s = 0,1,\ldots,r-1
+        \]
+      </div>
+
+      <h3>從 r 到因數</h3>
+      <div class="info-box purple">
+        <strong>關鍵定理</strong>
+        若 \(r\) 為偶數且 \(a^{r/2} \not\equiv -1 \pmod{N}\)，則：
+        \[
+          \gcd(a^{r/2}-1,\ N) \quad \text{和} \quad \gcd(a^{r/2}+1,\ N)
+        \]
+        至少有一個是 \(N\) 的非平凡因數（即不是 1 或 \(N\) 本身）。
+        <br/>在隨機選擇 \(a\) 的情況下，此條件成立的機率超過 \(1/2\)。
+      </div>
+    </section>
+
+    <section id="shors-math">
+      <h2><span class="section-num">8.</span> Shor 演算法的數學原理（進階）</h2>
+
+      <h3>8.1 量子相位估計（QPE）詳解</h3>
+      <p>
+        QPE 的核心量子電路架構如下：
+        使用 \(t\) 個精度量子位元（precision qubits）和足夠多的工作量子位元（work qubits）。
+      </p>
+
+      <div class="math-block">
+        \[
+          \frac{1}{\sqrt{2^t}}\sum_{j=0}^{2^t-1}|j\rangle|u\rangle
+          \xrightarrow{U^j} \frac{1}{\sqrt{2^t}}\sum_{j=0}^{2^t-1}e^{2\pi i \varphi j}|j\rangle|u\rangle
+          \xrightarrow{\text{QFT}^\dagger} |\tilde{\varphi}\rangle|u\rangle
+        \]
+      </div>
+
+      <p>
+        其中 \(\varphi = k/r\) 是特徵相位，\(|\tilde{\varphi}\rangle\) 是對 \(2^t\varphi\) 的近似整數編碼。
+        精度 \(t\) 需取 \(O(\log r + \log(1/\epsilon))\) 才能以 \(1 - \epsilon\) 的機率成功。
+      </p>
+
+      <h3>8.2 連分數展開（Continued Fractions）</h3>
+      <p>
+        從 QPE 測量到 \(s/r\)（有雜訊的估算），需要找到最接近此值且分母不超過 \(N\) 的分數。
+        利用<strong>歐幾里得連分數展開</strong>可以高效完成：
+      </p>
+      <div class="math-block">
+        \[
+          \frac{s}{r} \approx \frac{p_k}{q_k} = a_0 + \cfrac{1}{a_1+\cfrac{1}{a_2+\cdots}}
+        \]
+      </div>
+      <p>
+        最終候選的分母 \(q_k\) 即為 \(r\) 的候選值（或其因數）。
+      </p>
+
+      <h3>8.3 ECDLP 的 Shor 演算法變體</h3>
+      <p>
+        對於橢圓曲線離散對數問題：給定橢圓曲線上的點 \(P\) 和 \(Q = kP\)，求私鑰 \(k\)。
+        Shor 演算法的 ECDLP 版本利用量子相位估計計算：
+      </p>
+      <div class="math-block">
+        \[
+          U_{s,t}|x, y\rangle = |x + s,\; y + t \pmod r\rangle,\quad
+          \text{再疊加橢圓曲線的群操作}
+        \]
+      </div>
+      <p>
+        對於 256-bit 橢圓曲線（如比特幣的 secp256k1），所需邏輯量子位元數約為
+        \(2 \times 256 = 512\) 個（加上額外的工作位元），對應數千個物理量子位元（考慮錯誤校正開銷）。
+      </p>
+
+      <details>
+        <summary>進階：容錯量子計算（Fault-Tolerant Quantum Computing, FTQC）與錯誤閾值</summary>
+        <div class="details-body">
+          <p>
+            實際物理量子位元存在雜訊和錯誤。要可靠地執行 Shor 演算法，
+            必須使用<strong>量子錯誤校正碼（QEC）</strong>，將多個有雜訊的實體量子位元
+            編碼為少數可靠的<strong>邏輯量子位元（logical qubits）</strong>。
+          </p>
+          <p>
+            目前最受期待的 QEC 方案是<strong>表面碼（Surface Code）</strong>，
+            每個邏輯量子位元需要約 \(O(d^2)\) 個物理量子位元，
+            其中 \(d\) 是碼距（code distance）。要達到充分低的邏輯錯誤率，
+            通常需要 \(d \geq 27\)，亦即每個邏輯量子位元對應 <strong>數百至數千個物理量子位元</strong>。
+          </p>
+          <p>
+            這也是為什麼不同研究對所需「實體量子位元」數量的估算差異懸殊——
+            取決於所採用的 QEC 方案、錯誤率假設、與電路深度。
+          </p>
+        </div>
+      </details>
+    </section>
+
+    <section id="complexity">
+      <h2><span class="section-num">9.</span> 複雜度分析</h2>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>問題</th><th>最佳古典演算法</th><th>Shor 演算法（量子）</th><th>加速</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>整數因式分解（\(n\) bits）</td>
+              <td>\(O\!\left(e^{c\,n^{1/3}(\log n)^{2/3}}\right)\)（GNFS，亞指數）</td>
+              <td>\(O(n^3)\)（多項式！）</td>
+              <td><span class="tag orange">指數加速</span></td>
+            </tr>
+            <tr>
+              <td>橢圓曲線離散對數（\(n\) bits）</td>
+              <td>\(O\!\left(e^{\sqrt{n}\cdot c}\right)\)（Pollard's rho，指數）</td>
+              <td>\(O(n^3)\)（多項式）</td>
+              <td><span class="tag red">指數加速</span></td>
+            </tr>
+            <tr>
+              <td>對稱加密（AES-256）</td>
+              <td>\(O(2^{256})\)</td>
+              <td>\(O(2^{128})\)（Grover 演算法）</td>
+              <td><span class="tag green">平方根加速（可因應）</span></td>
+            </tr>
+            <tr>
+              <td>雜湊碰撞（SHA-256）</td>
+              <td>\(O(2^{128})\)（生日攻擊）</td>
+              <td>\(O(2^{85})\)（量子 BHT 演算法）</td>
+              <td><span class="tag green">小幅加速（可因應）</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box green">
+        <strong>✅ 關鍵洞察</strong>
+        對稱加密（AES、SHA 等）對量子攻擊有一定抵抗力——只需加倍金鑰長度即可抵擋。
+        但<strong>公鑰密碼學（RSA、ECC）則無法藉由加大金鑰長度來抵抗 Shor 演算法</strong>，
+        因為加速是指數級的。
+      </div>
+    </section>
+
+    <hr/>
+
+    <!-- ══════════════════════════════════════════════════════════
+         SECTION 4: CRYPTOGRAPHY
+    ═══════════════════════════════════════════════════════════ -->
+    <section id="rsa">
+      <h2><span class="section-num">10.</span> RSA 加密</h2>
+
+      <p>
+        RSA（Rivest–Shamir–Adleman）是最廣泛使用的公鑰加密演算法，
+        安全性建立在<strong>大數因式分解的困難性</strong>上。
+      </p>
+
+      <h3>RSA 金鑰生成</h3>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <h4>選擇兩個大質數</h4>
+            <p>選取兩個大質數 \(p\) 和 \(q\)（現代標準：各 1024 bits，共 2048-bit 模數）。</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <h4>計算模數</h4>
+            <p>\(N = p \times q\)（公開）。給出 \(N\) 但不知道 \(p, q\) 的情況下，找到 \(p, q\) 在古典計算上是困難的。</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <h4>選擇公開指數和私密指數</h4>
+            <p>選取 \(e\)（通常為 65537），計算 \(d \equiv e^{-1} \pmod{\varphi(N)}\)，其中 \(\varphi(N) = (p-1)(q-1)\)。</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <h4>加密與解密</h4>
+            <p>加密：\(c = m^e \bmod N\)；解密：\(m = c^d \bmod N\)。私鑰 \(d\) 只有知道 \(p, q\) 才能計算。</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="info-box red">
+        <strong>⚠️ Shor 演算法的威脅</strong>
+        Shor 演算法在多項式時間內分解 \(N = p \times q\)，進而計算 \(\varphi(N)\) 和私鑰 \(d\)，
+        使 RSA 完全失效。RSA-2048 大約需要 4000 個邏輯量子位元或約 400 萬個實體量子位元
+        （舊估算），但 2026 年的新研究大幅壓低了這個數字。
+      </div>
+    </section>
+
+    <section id="ecc">
+      <h2><span class="section-num">11.</span> 橢圓曲線密碼學（ECC）</h2>
+
+      <h3>橢圓曲線的數學</h3>
+      <p>橢圓曲線定義為滿足以下方程的點集合（加上無窮遠點）：</p>
+      <div class="math-block">
+        \[
+          E: \quad y^2 = x^3 + ax + b \pmod{p}
+        \]
+      </div>
+      <p>
+        以比特幣使用的 <strong>secp256k1</strong> 為例：\(a = 0\)，\(b = 7\)，
+        使用 256-bit 質數 \(p\)，曲線群的階數 \(n\) 約為 \(2^{256}\)。
+      </p>
+
+      <h3>橢圓曲線群操作</h3>
+      <p>
+        橢圓曲線上的點可以定義<strong>加法</strong>運算：直觀上是「過兩點作直線，
+        取第三交點的鏡射」。對同一點做 \(k\) 次加法（<strong>純量乘法</strong>）記為 \(kP\)。
+      </p>
+      <div class="math-block">
+        \[
+          Q = k \cdot P \quad \Longrightarrow \quad \text{離散對數問題：已知 } P, Q \text{，求 } k
+        \]
+      </div>
+
+      <h3>為什麼 ECC 比 RSA 更難用古典方法攻擊？</h3>
+      <p>
+        針對 ECC 的最佳古典攻擊是 <strong>Pollard's rho 演算法</strong>，
+        時間複雜度為 \(O(\sqrt{n})\)。對於 256-bit 曲線，這需要約 \(2^{128}\) 次操作，
+        是天文數字。但 Shor 演算法的 ECDLP 變體可以在多項式時間 \(O(n^3)\) 內解決。
+      </p>
+    </section>
+
+    <section id="bitcoin-ecdsa">
+      <h2><span class="section-num">12.</span> Bitcoin 的 ECDSA 與量子脆弱性</h2>
+
+      <h3>Bitcoin 如何使用 ECC？</h3>
+      <p>
+        Bitcoin 使用 <strong>ECDSA（橢圓曲線數位簽章演算法）</strong> 搭配 <strong>secp256k1</strong> 曲線
+        來實現交易授權：
+      </p>
+      <div class="card accent-l">
+        <h4>金鑰對生成流程</h4>
+        <p>
+          <strong>私鑰：</strong>隨機選取 256-bit 整數 \(k\)（就是你的「私鑰」，必須保密）<br/>
+          <strong>公鑰：</strong>計算 \(K = k \cdot G\)，其中 \(G\) 是曲線生成點（公開常數）<br/>
+          <strong>地址：</strong>對公鑰做 SHA-256 + RIPEMD-160 雜湊得到錢包地址
+        </p>
+      </div>
+
+      <h3>量子攻擊的兩種情境</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>攻擊情境</th><th>描述</th><th>風險程度</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>On-spend 攻擊</strong></td>
+              <td>當你發起交易廣播到網路時，公鑰短暫暴露在 mempool。攻擊者有 ~10 分鐘視窗，
+                在交易確認前搶先廣播竊取版本。Google 估計 9 分鐘可破解，成功率 41%。</td>
+              <td><span class="tag red">高</span></td>
+            </tr>
+            <tr>
+              <td><strong>地址重用攻擊</strong></td>
+              <td>對已重複使用的地址（公鑰已公開），攻擊者有無限時間破解私鑰。
+                估計約 25-30% 的比特幣流通量存在此風險。</td>
+              <td><span class="tag red">極高</span></td>
+            </tr>
+            <tr>
+              <td><strong>全新地址（P2PKH）</strong></td>
+              <td>從未發送過交易的地址，公鑰隱藏在雜湊後面，Shor 演算法無法直接攻擊。</td>
+              <td><span class="tag green">低（目前）</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box orange">
+        <strong>🔑 最佳實踐</strong>
+        永遠不要重複使用 Bitcoin 地址！每次交易後使用新地址可以大幅降低量子威脅。
+        但即便如此，on-spend 攻擊的風險在量子電腦出現後仍然存在。
+      </div>
+    </section>
+
+    <hr/>
+
+    <!-- ══════════════════════════════════════════════════════════
+         SECTION 5: 2026 RESEARCH
+    ═══════════════════════════════════════════════════════════ -->
+    <section id="google-paper">
+      <h2><span class="section-num">13.</span> Google QuantumAI 白皮書（2026）</h2>
+
+      <div class="info-box blue">
+        <strong>📄 論文標題</strong>
+        "Securing Elliptic Curve Cryptocurrencies against Quantum Vulnerabilities:
+        Resource Estimates and Mitigations" — Google QuantumAI（2026 年 3 月）<br/>
+        <a href="https://quantumai.google/static/site-assets/downloads/cryptocurrency-whitepaper.pdf" target="_blank" rel="noopener">
+          https://quantumai.google/static/site-assets/downloads/cryptocurrency-whitepaper.pdf ↗
+        </a>
+      </div>
+
+      <h3>核心發現</h3>
+      <p>
+        這份白皮書是迄今為止最具權威性的量子電腦對加密貨幣威脅的技術研究，
+        由 Google 量子 AI 團隊與頂尖密碼學家（包括史丹福大學 Dan Boneh）共同撰寫。
+      </p>
+
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="val">&lt;500K</div>
+          <div class="label">破解 secp256k1 所需實體量子位元</div>
+        </div>
+        <div class="stat-card">
+          <div class="val">20×</div>
+          <div class="label">相比先前估算的資源縮減倍數</div>
+        </div>
+        <div class="stat-card">
+          <div class="val">9 分鐘</div>
+          <div class="label">最短攻擊時間（on-spend）</div>
+        </div>
+        <div class="stat-card">
+          <div class="val">41%</div>
+          <div class="label">On-spend 攻擊成功率估算</div>
+        </div>
+      </div>
+
+      <h3>技術突破點</h3>
+      <div class="card accent3-l">
+        <h4>✅ 1. 更高效的量子電路設計</h4>
+        <p>
+          研究者設計了針對 secp256k1 橢圓曲線的專用量子電路，大幅減少了所需的邏輯量子位元數。
+          透過對模式算術（modular arithmetic）的量子電路優化，
+          執行一次 ECDLP 攻擊所需的 T-gate 數量顯著降低。
+        </p>
+      </div>
+      <div class="card accent3-l">
+        <h4>✅ 2. 改進的量子錯誤校正</h4>
+        <p>
+          利用最新的表面碼（Surface Code）進展，每個邏輯量子位元所需的物理量子位元數
+          從原先的數千個降低到數百個，從而壓低了總體物理量子位元需求。
+        </p>
+      </div>
+      <div class="card accent3-l">
+        <h4>✅ 3. 零知識證明驗證</h4>
+        <p>
+          Google 採用<strong>負責任揭露</strong>的原則：未公開實際攻擊電路，
+          而是提供零知識證明（zero-knowledge proof）來驗證其技術聲明。
+          此舉已與美國政府和相關利益方協調。
+        </p>
+      </div>
+
+      <h3>對比歷史估算</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>研究</th><th>年份</th><th>所需實體量子位元（ECC-256）</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Webber et al.</td>
+              <td>2022</td>
+              <td>~3,170 萬</td>
+            </tr>
+            <tr>
+              <td>Banegas et al.</td>
+              <td>2021</td>
+              <td>~200 萬</td>
+            </tr>
+            <tr>
+              <td>Roetteler et al.</td>
+              <td>2017</td>
+              <td>~2,330 萬</td>
+            </tr>
+            <tr>
+              <td><strong>Google QuantumAI</strong></td>
+              <td><strong>2026</strong></td>
+              <td><strong>&lt; 50 萬（20× 改善！）</strong></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>政策建議</h3>
+      <div class="pill-list">
+        <span class="pill blue">立即遷移至後量子密碼學</span>
+        <span class="pill orange">避免地址重用</span>
+        <span class="pill purple">制定治理路線圖</span>
+        <span class="pill green">「數位遺產」政策討論</span>
+      </div>
+    </section>
+
+    <section id="arxiv-paper">
+      <h2><span class="section-num">14.</span> ArXiv 2603.28627：10,000 個量子位元的 Shor 演算法</h2>
+
+      <div class="info-box purple">
+        <strong>📄 論文標題</strong>
+        "Shor's algorithm is possible with as few as 10,000 reconfigurable atomic qubits"
+        — arXiv:2603.28627（2026 年 3 月）<br/>
+        <a href="https://arxiv.org/abs/2603.28627" target="_blank" rel="noopener">
+          https://arxiv.org/abs/2603.28627 ↗
+        </a>
+      </div>
+
+      <h3>核心發現</h3>
+      <p>
+        這篇論文利用<strong>中性原子量子電腦（Neutral Atom Quantum Computers）</strong>的最新進展，
+        將執行 Shor 演算法所需的量子位元數大幅壓縮至前所未有的低點。
+      </p>
+
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="val">10,000</div>
+          <div class="label">最少所需原子量子位元（理論最低）</div>
+        </div>
+        <div class="stat-card">
+          <div class="val">26,000</div>
+          <div class="label">破解 ECC-256 的實用量子位元數</div>
+        </div>
+        <div class="stat-card">
+          <div class="val">~10 天</div>
+          <div class="label">以 26,000 量子位元破解 ECC-256</div>
+        </div>
+        <div class="stat-card">
+          <div class="val">102,000</div>
+          <div class="label">破解 RSA-2048 所需量子位元</div>
+        </div>
+      </div>
+
+      <h3>為什麼中性原子量子電腦更具潛力？</h3>
+      <div class="card accent2-l">
+        <h4>中性原子 vs. 超導量子位元</h4>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>特性</th><th>超導量子位元（Google/IBM）</th><th>中性原子（Oratomic/QuEra）</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>連接性</td>
+                <td>固定最近鄰連接</td>
+                <td>任意全連接（可重構）</td>
+              </tr>
+              <tr>
+                <td>相干時間</td>
+                <td>微秒（μs）量級</td>
+                <td>秒（s）量級（長達1000× 更長）</td>
+              </tr>
+              <tr>
+                <td>閘操作速度</td>
+                <td>快（納秒）</td>
+                <td>較慢（毫秒）</td>
+              </tr>
+              <tr>
+                <td>可重構性</td>
+                <td>低</td>
+                <td>高（原子可以移動重排）</td>
+              </tr>
+              <tr>
+                <td>擴展性</td>
+                <td>挑戰大（配線複雜）</td>
+                <td>更易擴展至數萬量子位元</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <h3>關鍵技術貢獻</h3>
+
+      <div class="card accent2-l">
+        <h4>1. 新型量子錯誤校正碼</h4>
+        <p>
+          論文採用了比表面碼更高效的量子 LDPC 碼（Low-Density Parity-Check Codes），
+          特別是 qLDPC 碼族。這類碼在同等邏輯量子位元數下，所需實體量子位元更少，
+          且更適合中性原子平台的全連接特性。
+        </p>
+      </div>
+
+      <div class="card accent2-l">
+        <h4>2. 可重構量子電路</h4>
+        <p>
+          中性原子系統允許原子在計算過程中動態移動和重排，
+          使得複雜的量子電路可以在小得多的物理空間內實現。
+          論文設計了針對此架構的 Shor 演算法最優化版本。
+        </p>
+      </div>
+
+      <div class="card accent2-l">
+        <h4>3. 電路深度-寬度權衡</h4>
+        <p>
+          透過增加電路深度（允許更長計算時間）來換取更少的量子位元數量，
+          在中性原子長相干時間的特性下，這種權衡變得可行。
+        </p>
+      </div>
+
+      <h3>影響範圍估算</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>密碼系統</th><th>應用場景</th><th>所需量子位元</th><th>破解時間估算</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>ECC-256（secp256k1）</td>
+              <td>Bitcoin、Ethereum 錢包</td>
+              <td>26,000</td>
+              <td>~10 天</td>
+            </tr>
+            <tr>
+              <td>P-256（NIST 標準）</td>
+              <td>TLS、Signal、HTTPS</td>
+              <td>26,000</td>
+              <td>~10 天</td>
+            </tr>
+            <tr>
+              <td>RSA-2048</td>
+              <td>電子郵件、金融系統</td>
+              <td>~102,000</td>
+              <td>~3 個月</td>
+            </tr>
+            <tr>
+              <td>RSA-4096</td>
+              <td>高安全性場景</td>
+              <td>~400,000</td>
+              <td>估算中</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box orange">
+        <strong>🔍 現況</strong>
+        目前中性原子量子電腦的記錄是超過 6,000 個高相干性量子位元（實驗室演示），
+        距離 26,000 仍有差距，但技術發展速度令人矚目。
+      </div>
+    </section>
+
+    <section id="comparison">
+      <h2><span class="section-num">15.</span> 兩篇論文比較</h2>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>維度</th><th>Google QuantumAI 白皮書</th><th>ArXiv 2603.28627</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>硬體平台</strong></td>
+              <td>超導量子位元（Superconducting）</td>
+              <td>中性原子量子位元（Neutral Atom）</td>
+            </tr>
+            <tr>
+              <td><strong>QEC 方案</strong></td>
+              <td>表面碼（Surface Code）</td>
+              <td>qLDPC 碼（Quantum LDPC）</td>
+            </tr>
+            <tr>
+              <td><strong>破解 ECC-256 所需量子位元</strong></td>
+              <td>&lt;500,000 實體量子位元</td>
+              <td>26,000 中性原子量子位元</td>
+            </tr>
+            <tr>
+              <td><strong>破解時間</strong></td>
+              <td>最快 9 分鐘（on-spend）</td>
+              <td>~10 天（26,000 量子位元）</td>
+            </tr>
+            <tr>
+              <td><strong>側重點</strong></td>
+              <td>加密貨幣具體威脅評估與緩解建議</td>
+              <td>量子資源下限的理論突破</td>
+            </tr>
+            <tr>
+              <td><strong>揭露方式</strong></td>
+              <td>負責任揭露（零知識證明）</td>
+              <td>完整公開學術論文</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box blue">
+        <strong>💡 互補性</strong>
+        這兩篇論文從不同角度說明了同一個威脅：
+        Google 的白皮書關注超導量子電腦路線（接近 Google 自身的技術路線圖），
+        而 ArXiv 論文揭示了中性原子路線可能用更少資源更早達成目標。
+        兩者合力大幅縮短了業界對安全遷移視窗的估計。
+      </div>
+    </section>
+
+    <hr/>
+
+    <!-- ══════════════════════════════════════════════════════════
+         SECTION 6: FUTURE
+    ═══════════════════════════════════════════════════════════ -->
+    <section id="timeline">
+      <h2><span class="section-num">16.</span> 威脅時間軸</h2>
+
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="year">1994</div>
+          <h4>Shor 演算法發表</h4>
+          <p>Peter Shor 在 Bell Labs 發表量子因式分解演算法，理論上威脅所有公鑰加密。</p>
+        </div>
+        <div class="timeline-item">
+          <div class="year">2019</div>
+          <h4>Google 量子霸權（Sycamore）</h4>
+          <p>Google 的 53-qubit Sycamore 處理器宣稱在特定問題上超越古典超級電腦。</p>
+        </div>
+        <div class="timeline-item">
+          <div class="year">2022</div>
+          <h4>NIST 後量子密碼學標準化</h4>
+          <p>NIST 選出 CRYSTALS-Kyber（金鑰封裝）和 CRYSTALS-Dilithium（數位簽章）等後量子算法候選。</p>
+        </div>
+        <div class="timeline-item">
+          <div class="year">2024</div>
+          <h4>Google Willow 量子晶片</h4>
+          <p>105-qubit Willow 晶片展示出指數級錯誤校正能力，量子計算進入新里程碑。</p>
+        </div>
+        <div class="timeline-item">
+          <div class="year">2026 ⚡</div>
+          <h4>Google 白皮書 + ArXiv 2603.28627 發表</h4>
+          <p>
+            本文所介紹的兩大突破：所需資源大幅壓縮，威脅時間軸顯著提前。
+            Justin Drake 公開表達高度警覺。
+          </p>
+        </div>
+        <div class="timeline-item">
+          <div class="year">2029（目標）</div>
+          <h4>Google 量子安全基礎設施</h4>
+          <p>Google 設定 2029 年為自身基礎設施完成後量子遷移的目標。以太坊也設定同年目標。</p>
+        </div>
+        <div class="timeline-item">
+          <div class="year">2032（風險評估）</div>
+          <h4>Justin Drake 的「量子危機日」預估</h4>
+          <p>10% 機率在此年之前出現能破解加密貨幣私鑰的量子電腦。</p>
+        </div>
+        <div class="timeline-item">
+          <div class="year">2030s</div>
+          <h4>大規模量子電腦？</h4>
+          <p>若量子硬體繼續以當前速度發展，百萬量子位元的容錯量子電腦可能在此十年出現。</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="pqc">
+      <h2><span class="section-num">17.</span> 後量子密碼學（Post-Quantum Cryptography, PQC）</h2>
+
+      <p>
+        後量子密碼學（PQC）是指在量子電腦存在的情況下仍然安全的密碼系統。
+        目前的研究方向基於多種數學困難問題，這些問題即使對量子電腦也難以解決。
+      </p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>方案類別</th><th>代表算法</th><th>安全基礎</th><th>特性</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>格密碼學</strong></td>
+              <td>CRYSTALS-Kyber<br/>CRYSTALS-Dilithium<br/>NTRU</td>
+              <td>最短向量問題（SVP）、學習帶錯問題（LWE）</td>
+              <td>NIST 標準化，效率高</td>
+            </tr>
+            <tr>
+              <td><strong>雜湊函數密碼學</strong></td>
+              <td>SPHINCS+<br/>XMSS<br/>LMS</td>
+              <td>雜湊函數的單向性（對量子僅需加倍強度）</td>
+              <td>最保守、最安全，但金鑰較大</td>
+            </tr>
+            <tr>
+              <td><strong>碼密碼學</strong></td>
+              <td>BIKE<br/>HQC<br/>McEliece</td>
+              <td>糾錯碼的解碼困難性</td>
+              <td>歷史悠久，金鑰大</td>
+            </tr>
+            <tr>
+              <td><strong>多變量密碼學</strong></td>
+              <td>Rainbow（已被破解!）<br/>UOV</td>
+              <td>多元二次多項式方程組求解困難性</td>
+              <td>部分方案已被攻破，需謹慎選擇</td>
+            </tr>
+            <tr>
+              <td><strong>同源密碼學</strong></td>
+              <td>SQISign<br/>CSIDH</td>
+              <td>橢圓曲線同源計算困難性</td>
+              <td>SIDH 已被完全破解（2022），此領域仍在發展</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>NIST 2024 後量子密碼學標準</h3>
+      <div class="pill-list">
+        <span class="pill blue">ML-KEM (Kyber) — 金鑰封裝</span>
+        <span class="pill purple">ML-DSA (Dilithium) — 數位簽章</span>
+        <span class="pill green">SLH-DSA (SPHINCS+) — 雜湊簽章</span>
+        <span class="pill orange">FN-DSA (FALCON) — 數位簽章</span>
+      </div>
+
+      <blockquote>
+        「對稱加密系統（如 AES、SHA-3）在量子時代只需要加倍金鑰/摘要長度即可保持安全；
+        但基於 RSA 和 ECC 的公鑰系統必須被徹底替換。」
+        <cite>— NIST 後量子密碼學標準化計畫</cite>
+      </blockquote>
+
+      <h3>加密貨幣遷移的挑戰</h3>
+      <div class="card danger-l">
+        <h4>⚠️ 去中心化系統的特殊困難</h4>
+        <p>
+          與中央化的金融機構不同，Bitcoin 和 Ethereum 的協議升級需要全網路共識（硬分叉或軟分叉）。
+          以下是主要挑戰：
+        </p>
+        <ul style="margin-top:10px;padding-left:20px;color:var(--text-muted);">
+          <li style="margin-bottom:8px;">
+            <strong>舊地址的「遺孤」問題：</strong>大量舊地址（包括 Satoshi 的比特幣）使用脆弱的公鑰格式，
+            升級後如何處理？
+          </li>
+          <li style="margin-bottom:8px;">
+            <strong>後量子簽章體積大：</strong>CRYSTALS-Dilithium 簽章約 2,420 bytes，
+            相比 ECDSA 的 72 bytes 大了 33 倍，會顯著增加區塊鏈的存儲和傳輸開銷。
+          </li>
+          <li style="margin-bottom:8px;">
+            <strong>治理時間壓力：</strong>即使技術方案已確定，在去中心化網路中推動升級仍需數年。
+          </li>
+          <li>
+            <strong>時間視窗縮小：</strong>2026 年的新研究顯示，安全遷移的時間視窗可能比預期短得多。
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="ethereum">
+      <h2><span class="section-num">18.</span> 以太坊的後量子安全策略</h2>
+
+      <h3>Ethereum 基金會的行動</h3>
+      <p>
+        以太坊基金會在 2026 年初正式將後量子安全列為最高優先戰略，
+        成立了專屬的「Post Quantum」研究團隊，並提供 <strong>100 萬美元</strong> 的研究獎金。
+      </p>
+
+      <h3>Justin Drake 的「Lean Ethereum」願景</h3>
+      <div class="card accent-l">
+        <h4>Lean Ethereum 核心原則</h4>
+        <p>
+          Justin Drake 提出的 Lean Ethereum 是一個兼顧<strong>極致效能</strong>與<strong>後量子安全</strong>的
+          以太坊十年路線圖，核心包括：
+        </p>
+        <ul style="padding-left:20px;margin-top:10px;color:var(--text-muted);">
+          <li style="margin-bottom:8px;">
+            <strong>共識層（Beacon Chain 2.0）：</strong>更快的最終性（finality），整合後量子簽章
+          </li>
+          <li style="margin-bottom:8px;">
+            <strong>資料層（Blobs 2.0）：</strong>後量子的資料可用性保證
+          </li>
+          <li style="margin-bottom:8px;">
+            <strong>執行層（RISC-V）：</strong>SNARK 友好的最小指令集，便於零知識證明整合
+          </li>
+          <li>
+            <strong>雜湊密碼學：</strong>在簽章方案和承諾方案中優先採用雜湊為基礎的後量子密碼學
+          </li>
+        </ul>
+      </div>
+
+      <h3>技術路徑：EIP 提案方向</h3>
+
+      <div class="card accent2-l">
+        <h4>帳戶抽象（Account Abstraction）</h4>
+        <p>
+          以太坊的 EIP-4337 帳戶抽象允許使用者自定義驗證邏輯，
+          這為遷移至後量子簽章提供了靈活的升級路徑，
+          無需在協議層進行破壞性的硬分叉。
+        </p>
+      </div>
+
+      <div class="card accent2-l">
+        <h4>STARK 證明系統</h4>
+        <p>
+          STARK（Scalable Transparent ARguments of Knowledge）是一種後量子安全的零知識證明系統，
+          以太坊的 ZK-rollup 生態系統（如 StarkNet）已大量採用。
+          STARK 對量子電腦是安全的，因為其安全性僅依賴雜湊函數的碰撞抗性。
+        </p>
+      </div>
+
+      <h3>2029 目標</h3>
+      <blockquote>
+        「以太坊必須在 2029 年前完成後量子密碼學的遷移。
+         這不是可選項，而是生死存亡的問題。」
+        <cite>— Justin Drake，2026 年 3 月</cite>
+      </blockquote>
+    </section>
+
+    <hr/>
+
+    <!-- ══════════════════════════════════════════════════════════
+         SECTION 7: REFERENCES
+    ═══════════════════════════════════════════════════════════ -->
+    <section id="references">
+      <h2><span class="section-num">19.</span> 參考資料</h2>
+
+      <ul class="ref-list">
+        <li>
+          <span class="ref-num">[1]</span>
+          <strong>Justin Drake (@drakefjustin) — X 貼文</strong><br/>
+          量子危機日預估與 Google 白皮書反應（2026 年 3 月 31 日）<br/>
+          <a href="https://x.com/drakefjustin/status/2038847732152996108" target="_blank" rel="noopener">
+            https://x.com/drakefjustin/status/2038847732152996108
+          </a>
+        </li>
+        <li>
+          <span class="ref-num">[2]</span>
+          <strong>Google QuantumAI — "Securing Elliptic Curve Cryptocurrencies against Quantum Vulnerabilities: Resource Estimates and Mitigations"</strong><br/>
+          Google QuantumAI 白皮書（2026 年 3 月）<br/>
+          <a href="https://quantumai.google/static/site-assets/downloads/cryptocurrency-whitepaper.pdf" target="_blank" rel="noopener">
+            https://quantumai.google/static/site-assets/downloads/cryptocurrency-whitepaper.pdf
+          </a>
+        </li>
+        <li>
+          <span class="ref-num">[3]</span>
+          <strong>"Shor's algorithm is possible with as few as 10,000 reconfigurable atomic qubits"</strong><br/>
+          arXiv:2603.28627（2026 年 3 月）<br/>
+          <a href="https://arxiv.org/abs/2603.28627" target="_blank" rel="noopener">
+            https://arxiv.org/abs/2603.28627
+          </a>
+        </li>
+        <li>
+          <span class="ref-num">[4]</span>
+          <strong>Shor, P. W. — "Algorithms for quantum computation: discrete logarithms and factoring"</strong><br/>
+          Proceedings 35th Annual Symposium on Foundations of Computer Science, 1994.<br/>
+          <a href="https://ieeexplore.ieee.org/document/365700" target="_blank" rel="noopener">
+            https://ieeexplore.ieee.org/document/365700
+          </a>
+        </li>
+        <li>
+          <span class="ref-num">[5]</span>
+          <strong>NIST — Post-Quantum Cryptography Standards (FIPS 203/204/205)</strong><br/>
+          NIST 後量子密碼學標準（2024 年 8 月正式發布）<br/>
+          <a href="https://www.nist.gov/news-events/news/2024/08/nist-releases-first-3-finalized-post-quantum-encryption-standards" target="_blank" rel="noopener">
+            https://www.nist.gov/pqcrypto
+          </a>
+        </li>
+        <li>
+          <span class="ref-num">[6]</span>
+          <strong>Nielsen, M. A. &amp; Chuang, I. L. — "Quantum Computation and Quantum Information"</strong><br/>
+          Cambridge University Press, 2000（量子計算領域聖經教材）
+        </li>
+        <li>
+          <span class="ref-num">[7]</span>
+          <strong>Google Research Blog — "Safeguarding cryptocurrency by disclosing quantum vulnerabilities responsibly"</strong><br/>
+          <a href="https://research.google/blog/safeguarding-cryptocurrency-by-disclosing-quantum-vulnerabilities-responsibly/" target="_blank" rel="noopener">
+            https://research.google/blog/...
+          </a>
+        </li>
+        <li>
+          <span class="ref-num">[8]</span>
+          <strong>Webber, M. et al. — "The impact of hardware specifications on reaching quantum advantage in the fault tolerant regime"</strong><br/>
+          AVS Quantum Science, 2022.<br/>
+          <a href="https://doi.org/10.1116/5.0073075" target="_blank" rel="noopener">
+            https://doi.org/10.1116/5.0073075
+          </a>
+        </li>
+      </ul>
+
+      <hr/>
+      <p style="font-size:0.82rem;color:var(--text-dim);text-align:center;">
+        本頁面用於教育目的，涵蓋量子計算、密碼學與區塊鏈安全的跨領域知識。<br/>
+        內容基於截至 2026 年 3 月的最新研究資料。
+      </p>
+    </section>
+
+  </main>
+</div>
+
+<script>
+  // Sidebar toggle for mobile
+  const toggle = document.getElementById('menu-toggle');
+  const sidebar = document.getElementById('sidebar');
+  toggle.addEventListener('click', () => sidebar.classList.toggle('open'));
+  document.getElementById('content').addEventListener('click', () => {
+    if (window.innerWidth <= 900) sidebar.classList.remove('open');
+  });
+
+  // Active nav link on scroll
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('#sidebar nav ul li:not(.section-header) a');
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        navLinks.forEach(a => a.parentElement.classList.remove('active'));
+        const active = document.querySelector(`#sidebar nav ul li a[href="#${entry.target.id}"]`);
+        if (active) active.parentElement.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-20% 0% -60% 0%' });
+
+  sections.forEach(s => observer.observe(s));
+</script>
+
+</body>
+</html>
